@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: stremio-addon
+
+logging:
+  level:
+    org.example.stremioaddon: DEBUG
+
+omdb:
+  apiKey: ${OMDB_API_KEY}
+  baseUrl: "https://www.omdbapi.com/"
