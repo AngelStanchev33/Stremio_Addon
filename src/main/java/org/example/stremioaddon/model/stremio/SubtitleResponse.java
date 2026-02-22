@@ -1,4 +1,4 @@
-package org.example.stremioaddon.model.reponse;
+package org.example.stremioaddon.model.stremio;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

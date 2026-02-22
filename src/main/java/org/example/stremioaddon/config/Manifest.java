@@ -1,4 +1,4 @@
-package org.example.stremioaddon.manifest;
+package org.example.stremioaddon.config;
 
 import lombok.Data;
 import org.springframework.stereotype.Component;

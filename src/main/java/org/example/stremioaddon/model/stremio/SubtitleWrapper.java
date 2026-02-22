@@ -1,4 +1,4 @@
-package org.example.stremioaddon.model.reponse;
+package org.example.stremioaddon.model.stremio;
 
 import lombok.*;
 
@@ -10,4 +10,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class SubtitleWrapper {
     Set<SubtitleResponse> subtitles = new HashSet<>();
+    private Integer cacheMaxAge;
+    private Integer staleRevalidate;
+    private Integer staleError;
 }

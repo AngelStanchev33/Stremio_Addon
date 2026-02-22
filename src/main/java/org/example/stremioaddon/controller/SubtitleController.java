@@ -1,8 +1,7 @@
 package org.example.stremioaddon.controller;
 
-import org.example.stremioaddon.manifest.Manifest;
-import org.example.stremioaddon.model.reponse.OmdbResponse;
-import org.example.stremioaddon.model.reponse.SubtitleWrapper;
+import org.example.stremioaddon.model.ombd.OmdbResponse;
+import org.example.stremioaddon.model.stremio.SubtitleWrapper;
 import org.example.stremioaddon.model.subunac.SubsUnacsSubtitle;
 import org.example.stremioaddon.service.OmdbService;
 import org.example.stremioaddon.service.StremioService;
@@ -18,25 +17,19 @@ import org.slf4j.Logger;
 
 @RestController
 @RequestMapping("/")
-public class AddonController {
-    private final Manifest manifest;
+public class SubtitleController {
     private final SubsUnacsProviderService subsUnacsProviderService;
     private final OmdbService omdbService;
     private final StremioService stremioService;
-    private final Logger logger = LoggerFactory.getLogger(AddonController.class);
+    private final Logger logger = LoggerFactory.getLogger(SubtitleController.class);
 
-    public AddonController(Manifest manifest, SubsUnacsProviderService subsUnacsProviderService, OmdbService omdbService, StremioService stremioService) {
-        this.manifest = manifest;
+    public SubtitleController(SubsUnacsProviderService subsUnacsProviderService,
+                              OmdbService omdbService, StremioService stremioService) {
         this.subsUnacsProviderService = subsUnacsProviderService;
         this.omdbService = omdbService;
         this.stremioService = stremioService;
     }
 
-    @GetMapping("/manifest.json")
-    @CrossOrigin
-    public Manifest produceManifest() {
-        return manifest;
-    }
 
     @GetMapping("/subtitles/{type}/{id}/{extra}.json")
     @CrossOrigin
@@ -52,16 +45,13 @@ public class AddonController {
             logger.debug("Fetched OMDB metadata for id {}: {} ({})",
                     stremioId[0], videoMeta.getTitle(), videoMeta.getYear());
 
-
-            Map<String, SubsUnacsSubtitle> scrappedSubsFromSubUnac =
-                    subsUnacsProviderService.searchSubtitles(videoMeta, stremioId);
-
+            Map<String, SubsUnacsSubtitle> scrappedSubsFromSubUnac = subsUnacsProviderService.searchSubtitles(videoMeta,
+                    stremioId);
 
             logger.debug("Found {} subtitles from SubsUnacs for video {}",
                     scrappedSubsFromSubUnac.size(), videoMeta.getTitle());
 
-            SubtitleWrapper subtitleWrapper =
-                    stremioService.mapSubsToStremioStandard(scrappedSubsFromSubUnac);
+            SubtitleWrapper subtitleWrapper = stremioService.mapSubsToStremioStandard(scrappedSubsFromSubUnac);
 
             return ResponseEntity.ok(subtitleWrapper);
 
@@ -73,6 +63,8 @@ public class AddonController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(empty);
         }
     }
+
+
 
 
 }

@@ -1,4 +1,4 @@
-package org.example.stremioaddon.model.reponse;
+package org.example.stremioaddon.model.ombd;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

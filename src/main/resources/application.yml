@@ -9,3 +9,8 @@ logging:
 omdb:
   apiKey: ${OMDB_API_KEY}
   baseUrl: "https://www.omdbapi.com/"
+
+jackett:
+  apiKey: ${JACKETT_API_KEY}
+  baseUrl: "http://localhost:9117"
+

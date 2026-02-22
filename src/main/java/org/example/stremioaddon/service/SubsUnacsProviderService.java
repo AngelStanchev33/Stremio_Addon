@@ -1,7 +1,7 @@
 package org.example.stremioaddon.service;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.example.stremioaddon.model.reponse.OmdbResponse;
+import org.example.stremioaddon.model.ombd.OmdbResponse;
 import org.example.stremioaddon.model.subunac.Episode;
 import org.example.stremioaddon.model.subunac.SubsUnacsSubtitle;
 import org.example.stremioaddon.model.subunac.Video;
@@ -36,7 +36,7 @@ public class SubsUnacsProviderService {
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36");
 
     public SubsUnacsProviderService(CacheManager cacheManager, SanitizeText sanitizeText,
-                                    TitleNormalization titleNormalization) {
+            TitleNormalization titleNormalization) {
         this.cacheManager = cacheManager;
         this.sanitizeText = sanitizeText;
         this.titleNormalization = titleNormalization;
