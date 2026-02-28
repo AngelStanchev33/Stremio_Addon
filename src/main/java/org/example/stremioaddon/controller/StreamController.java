@@ -38,7 +38,13 @@ public class StreamController {
             @PathVariable String type,
             @PathVariable String id
     ) {
-        logger.debug("Hit stream endpoint");
+        logger.debug("Hit stream endpoint for type: {}, id: {}", type, id);
+
+        // Series are not supported for streams - only subtitles
+        if ("series".equals(type)) {
+            logger.debug("Series streams not supported, returning empty wrapper");
+            return ResponseEntity.ok(new StreamWrapper());
+        }
 
         try {
             OmdbResponse videoMeta = omdbService.getByImdbId(id);
@@ -53,7 +59,7 @@ public class StreamController {
                     jackettService.findSteams(videoMeta.getTitle(), videoMeta.getYear(), typeOfMedia);
             logger.debug("Found streams for {} from Jackett", videoMeta.getTitle());
 
-            StreamWrapper response = stremioService.mapSubsToStremioStandard(jackettResponse);
+            StreamWrapper response = stremioService.mapToStremioStandard(jackettResponse);
 
             return ResponseEntity.ok()
                     .cacheControl(CacheControl.maxAge(3600, TimeUnit.SECONDS)

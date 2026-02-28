@@ -9,47 +9,40 @@ import org.example.stremioaddon.model.stremio.StreamWrapper;
 import org.example.stremioaddon.model.stremio.SubtitleResponse;
 import org.example.stremioaddon.model.stremio.SubtitleWrapper;
 import org.example.stremioaddon.model.subunac.SubsUnacsSubtitle;
+import org.example.stremioaddon.model.yavka.YavkaSubtitle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidParameterException;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class StremioService {
     private final Logger logger = LoggerFactory.getLogger(StremioService.class);
 
-
-    public SubtitleWrapper mapSubsToStremioStandard(Map<String, SubsUnacsSubtitle> scrappedSubs) {
-        SubtitleWrapper subtitleWrapper = new SubtitleWrapper();
-
-        for (SubsUnacsSubtitle sub : scrappedSubs.values()) {
-            SubtitleResponse stremioSubs = new SubtitleResponse();
-
-            stremioSubs
-                    .setId(sub.getId())
-                    .setUrl(sub.getLink())
-                    .setLang("Bulgarian");
-
-            subtitleWrapper.getSubtitles()
-                    .add(stremioSubs);
-        }
-
-        return subtitleWrapper;
-    }
-
-    public StreamWrapper mapSubsToStremioStandard(JackResponseWrapper jackResponseWrapper) {
+    public StreamWrapper mapToStremioStandard(JackResponseWrapper jackResponseWrapper) {
         StreamWrapper streamWrapper = new StreamWrapper();
 
         for (JackettResponse jackettResponse : jackResponseWrapper.getResult()) {
             try {
                 String titleToParse = jackettResponse.getTitle() + ".mkv";
                 ParsedFilename parsedFilename = FilenameParser.parseFilename(titleToParse);
-                String name = "Angelio" + " " + parsedFilename.resolution;
-                String size = String.format("%.2f GB", jackettResponse.getSize() / 1_073_741_824.0);
+                String resolution = parsedFilename.resolution != null
+                    ? parsedFilename.resolution
+                    : jackettResponse.getCategory() != null && jackettResponse.getCategory().contains("/")
+                        ? jackettResponse.getCategory().split("/")[1]
+                        : "Unknown";
+                String name = "Angelio " + resolution;
+                String size = jackettResponse.getSize() != null
+                    ? String.format("%.2f GB", jackettResponse.getSize() / 1_073_741_824.0)
+                    : "Unknown";
                 String description = String.format("👤 %s | 💾 %s | 🎬 %s",
-                        jackettResponse.getSeeders(), size, parsedFilename.resolution);
+                        jackettResponse.getSeeders(), size, resolution);
 
                 StreamResponse streamResponse = new StreamResponse()
                         .setName(name)
@@ -79,17 +72,52 @@ public class StremioService {
         return streamWrapper;
     }
 
-//    public static List<String> getTrackers(String url, String infoHash) {
-//        List<String> trackers = new ArrayList<>();
-//        trackers.add("dht:" + infoHash.toLowerCase());
-//
-//
-//        String[] magnet = url.split("&tr=");
-//        for (int i = 1; i < magnet.length; i++) {
-//            String tracker = URLDecoder.decode(magnet[i], StandardCharsets.UTF_8);
-//            trackers.add("tracker:" + tracker);
-//        }
-//
-//        return trackers;
-//    }
+    /**
+     * Merge subtitles from multiple providers (SubsUnacs + Yavka)
+     * Converts to Stremio format with proper proxy URLs
+     */
+    public SubtitleWrapper mergeSubtitles(
+            Map<String, SubsUnacsSubtitle> subsUnacsSubtitles,
+            Map<String, YavkaSubtitle> yavkaSubtitles) {
+
+        SubtitleWrapper wrapper = new SubtitleWrapper();
+        Set<SubtitleResponse> allSubtitles = new HashSet<>();
+
+        // Add SubsUnacs subtitles
+        for (SubsUnacsSubtitle sub : subsUnacsSubtitles.values()) {
+            // Build download URL using proxy endpoint
+            String downloadUrl = String.format(
+                "http://localhost:8080/subsunacs/download?link=%s",
+                URLEncoder.encode(sub.getLink(), StandardCharsets.UTF_8)
+            );
+
+            SubtitleResponse stremioSub = new SubtitleResponse()
+                .setId(sub.getId())
+                .setUrl(downloadUrl)
+                .setLang("Bulgarian");
+            allSubtitles.add(stremioSub);
+        }
+
+        // Add Yavka subtitles
+        for (YavkaSubtitle sub : yavkaSubtitles.values()) {
+            // Build download URL using proxy endpoint (returns archive)
+            String downloadUrl = String.format(
+                "http://localhost:8080/yavka/download?link=%s",
+                URLEncoder.encode(sub.getLink(), StandardCharsets.UTF_8)
+            );
+
+            SubtitleResponse stremioSub = new SubtitleResponse()
+                .setId(sub.getId())
+                .setUrl(downloadUrl)  // Points to RAR/ZIP archive
+                .setLang("Bulgarian");
+            allSubtitles.add(stremioSub);
+        }
+
+        wrapper.setSubtitles(allSubtitles);
+        logger.debug("Merged {} SubsUnacs + {} Yavka = {} total subtitles",
+            subsUnacsSubtitles.size(), yavkaSubtitles.size(), allSubtitles.size());
+
+        return wrapper;
+    }
+
 }

@@ -18,7 +18,11 @@ import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 @Service
 public class SubsUnacsProviderService {
@@ -34,6 +38,7 @@ public class SubsUnacsProviderService {
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36");
+    private static final Random RANDOM = new Random();
 
     public SubsUnacsProviderService(CacheManager cacheManager, SanitizeText sanitizeText,
             TitleNormalization titleNormalization) {
@@ -43,8 +48,7 @@ public class SubsUnacsProviderService {
     }
 
     private String getRandomUserAgent() {
-        Random random = new Random();
-        return USER_AGENTS.get(random.nextInt(USER_AGENTS.size()));
+        return USER_AGENTS.get(RANDOM.nextInt(USER_AGENTS.size()));
     }
 
     public Connection createConnection(String url) {
@@ -90,18 +94,18 @@ public class SubsUnacsProviderService {
                 cacheKey);
 
         var cache = cacheManager.getCache("subsUnacsSearch");
-        if (cache != null) {
-            Map<String, SubsUnacsSubtitle> cached = cache.get(cacheKey, Map.class);
-            if (cached != null) {
-                logger.info("Cache HIT for key: {} ({} entries)", cacheKey, cached.size());
-                return cached;
-            }
-            logger.info("Cache MISS for key: {}", cacheKey);
-        } else {
-            logger.warn("Cache 'subsUnacsSearch' is NULL — caching is not working!");
+        if (cache == null) {
+            logger.error("Cache 'subsUnacsSearch' not found");
+            return new HashMap<>();
         }
+        @SuppressWarnings("unchecked")
+        Map<String, SubsUnacsSubtitle> cached = (Map<String, SubsUnacsSubtitle>) cache.get(cacheKey, Map.class);
+        if (cached != null) {
+            logger.info("Cache HIT for key: {} ({} entries)", cacheKey, cached.size());
+            return cached;
+        }
+        logger.info("Cache MISS for key: {}", cacheKey);
 
-        // --- Тук остава твоята текуща логика ---
         Map<String, SubsUnacsSubtitle> subtitles = new HashMap<>();
 
         Map<String, String> params = new HashMap<>();
@@ -209,11 +213,10 @@ public class SubsUnacsProviderService {
             logger.error("Error searching subtitles on SubsUnacs: {}", e.getMessage(), e);
         }
 
-        // --- ТУК е cache.put(...) ---
-        if (cache != null && !subtitles.isEmpty()) {
+        if (!subtitles.isEmpty()) {
             cache.put(cacheKey, subtitles);
             logger.info("Stored {} subtitles in cache with key: {}", subtitles.size(), cacheKey);
-        } else if (subtitles.isEmpty()) {
+        } else {
             logger.warn("No subtitles found — NOT caching empty result for key: {}", cacheKey);
         }
 
