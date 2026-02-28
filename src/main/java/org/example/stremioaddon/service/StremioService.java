@@ -38,7 +38,7 @@ public class StremioService {
                         ? jackettResponse.getCategory().split("/")[1]
                         : "Unknown";
                 String name = "Angelio " + resolution;
-                String size = jackettResponse.getSize() != null
+                String size = jackettResponse.getSize() != null && jackettResponse.getSize() > 0
                     ? String.format("%.2f GB", jackettResponse.getSize() / 1_073_741_824.0)
                     : "Unknown";
                 String description = String.format("👤 %s | 💾 %s | 🎬 %s",
