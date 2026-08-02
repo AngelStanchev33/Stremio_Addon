@@ -20,14 +20,14 @@ public class StreamResponse {
     @JsonProperty("description")
     private String description;
 
-    @JsonProperty("url")
-    private String url;
+    @JsonProperty("infoHash")
+    private String infoHash;
 
 //    @JsonProperty("fileIdx")
 //    private Integer fileIdx = 0;
 
-//    @JsonProperty("infoHash")
-//    private String infoHash;
+//    @JsonProperty("url")
+//    private String url;
 
 //    @JsonProperty("sources")
 //    private List<String> sources;

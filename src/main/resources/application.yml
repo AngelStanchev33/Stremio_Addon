@@ -1,3 +1,6 @@
+server:
+  port: ${PORT:8080}
+
 spring:
   application:
     name: stremio-addon
@@ -12,5 +15,5 @@ omdb:
 
 jackett:
   apiKey: ${JACKETT_API_KEY}
-  baseUrl: "http://localhost:9117"
+  baseUrl: ${JACKETT_BASE_URL:http://localhost:9117}
 

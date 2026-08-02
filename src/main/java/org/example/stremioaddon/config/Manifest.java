@@ -9,7 +9,7 @@ public class Manifest {
 
     private final String id = "com.github.addon.angel33.sub";
     private final String version = "1.0.0";
-    private final String name = "Angellio";
+    private final String name = "Angelio";
     private final String description = "Bulgarian steams & subtitles";
     private final String[] resources = {"stream", "subtitles"};
     private final String[] types = {"movie", "series"};

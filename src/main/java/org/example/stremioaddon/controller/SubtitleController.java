@@ -3,11 +3,9 @@ package org.example.stremioaddon.controller;
 import org.example.stremioaddon.model.ombd.OmdbResponse;
 import org.example.stremioaddon.model.stremio.SubtitleWrapper;
 import org.example.stremioaddon.model.subunac.SubsUnacsSubtitle;
-import org.example.stremioaddon.model.yavka.YavkaSubtitle;
 import org.example.stremioaddon.service.OmdbService;
 import org.example.stremioaddon.service.StremioService;
 import org.example.stremioaddon.service.SubsUnacsProviderService;
-import org.example.stremioaddon.service.YavkaProviderService;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,17 +23,14 @@ import org.slf4j.Logger;
 @RestController
 public class SubtitleController {
     private final SubsUnacsProviderService subsUnacsProviderService;
-    private final YavkaProviderService yavkaProviderService;
     private final OmdbService omdbService;
     private final StremioService stremioService;
     private final Logger logger = LoggerFactory.getLogger(SubtitleController.class);
 
     public SubtitleController(SubsUnacsProviderService subsUnacsProviderService,
-                              YavkaProviderService yavkaProviderService,
                               OmdbService omdbService,
                               StremioService stremioService) {
         this.subsUnacsProviderService = subsUnacsProviderService;
-        this.yavkaProviderService = yavkaProviderService;
         this.omdbService = omdbService;
         this.stremioService = stremioService;
     }
@@ -57,27 +52,18 @@ public class SubtitleController {
 
             // Fetch from SubsUnacs
             Map<String, SubsUnacsSubtitle> subsFromSubUnac =
-                subsUnacsProviderService.searchSubtitles(videoMeta, stremioId);
+                    subsUnacsProviderService.searchSubtitles(videoMeta, stremioId);
             logger.debug("Found {} subtitles from SubsUnacs", subsFromSubUnac.size());
 
-            // Fetch from Yavka.net (optional - fails gracefully)
-            Map<String, YavkaSubtitle> subsFromYavka = new HashMap<>();
-            try {
-                subsFromYavka = yavkaProviderService.searchSubtitles(videoMeta, stremioId);
-                logger.debug("Found {} subtitles from Yavka.net", subsFromYavka.size());
-            } catch (Exception yavkaError) {
-                logger.warn("Yavka.net provider failed (continuing with SubsUnacs only): {}",
-                    yavkaError.getMessage());
-            }
 
             // Merge results
             SubtitleWrapper subtitleWrapper = stremioService.mergeSubtitles(
-                subsFromSubUnac, subsFromYavka
+                    subsFromSubUnac
             );
 
-            logger.info("Returning {} total subtitles for {} ({} from SubsUnacs, {} from Yavka)",
-                subtitleWrapper.getSubtitles().size(), videoMeta.getTitle(),
-                subsFromSubUnac.size(), subsFromYavka.size());
+            logger.info("Returning {} total subtitles for {} ({} from SubsUnacs",
+                    subtitleWrapper.getSubtitles().size(), videoMeta.getTitle(),
+                    subsFromSubUnac.size());
 
             return ResponseEntity.ok(subtitleWrapper);
 

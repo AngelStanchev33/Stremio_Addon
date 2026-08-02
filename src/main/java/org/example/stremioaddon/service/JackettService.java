@@ -56,6 +56,7 @@ public class JackettService {
                 .getResult()
                 .stream()
                 .filter(r -> r.getTitle().contains(year))
+                .filter(r -> r.getTitle().toUpperCase().contains("DIN"))
                 .filter(r -> r.getCategory().startsWith(category))
                 .collect(Collectors.toList());
 

@@ -55,6 +55,8 @@ public class StreamController {
                     videoMeta.getType());
             String typeOfMedia = omdbService.getType(videoMeta.getType());
 
+            System.out.println();
+
             JackResponseWrapper jackettResponse =
                     jackettService.findSteams(videoMeta.getTitle(), videoMeta.getYear(), typeOfMedia);
             logger.debug("Found streams for {} from Jackett", videoMeta.getTitle());
