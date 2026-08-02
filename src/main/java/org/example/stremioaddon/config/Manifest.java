@@ -12,7 +12,7 @@ public class Manifest {
     private final String name = "Angelio";
     private final String description = "Bulgarian steams & subtitles";
     private final String[] resources = {"stream", "subtitles"};
-    private final String[] types = {"movie", "series"};
+    private final String[] types = {"movie"};
     private final String[] catalogs = {};
     private final String[] idPrefixes = {"tt"};
     private final String background = "";
